@@ -1,0 +1,71 @@
+import os
+import shutil
+import cv2
+import numpy as np
+from PIL import Image
+
+def preprocess_jpeg(file_path, target_size=(224, 224)):
+    """Preprocesses a JPEG image.
+
+    Args:
+        file_path: Path to the JPEG image.
+        target_size: Target size for resizing the image.
+
+    Returns:
+        The preprocessed image as a NumPy array.
+    """
+    try:
+        img = Image.open(file_path).convert("L")  # Open as grayscale
+        img_np = np.array(img)
+
+        # Normalize pixel values (similar to DICOM preprocessing)
+        img_np = (img_np - img_np.min()) / (img_np.max() - img_np.min()) * 255.0
+        img_np = img_np.astype(np.uint8)
+
+        # Resize
+        img_resized = cv2.resize(img_np, target_size)
+        return img_resized
+    except Exception as e:
+        print(f"Error processing {file_path}: {e}")
+        return None  # Or handle the error as needed
+
+
+def move_and_preprocess_images(source_dir, dest_dir, target_size=(224, 224)):
+    """Moves and preprocesses images from source to destination directories.
+
+    Args:
+        source_dir: The root directory containing the 'NORMAL' and 'PNEUMONIA' subdirectories.
+        dest_dir: The destination directory where 'normal' and 'pneumonia' subdirectories will be created.
+        target_size: Target size for preprocessing.
+    """
+    for subdir in ["NORMAL", "PNEUMONIA"]:
+        source_subdir = os.path.join(source_dir, subdir)
+        dest_subdir = os.path.join(dest_dir, subdir.lower())  # Use lowercase for consistency
+
+        if not os.path.exists(dest_subdir):
+            os.makedirs(dest_subdir)
+
+        for filename in os.listdir(source_subdir):
+            if filename.lower().endswith(('.jpg', '.jpeg')): #check for jpg or jpeg
+                source_path = os.path.join(source_subdir, filename)
+                dest_path = os.path.join(dest_subdir, filename) #keep original name
+
+                processed_image = preprocess_jpeg(source_path, target_size)
+
+                if processed_image is not None:
+                    try:
+                       # Save the processed image (e.g., as .jpg or .png)
+                        cv2.imwrite(dest_path, processed_image) #save as jpg
+                        print(f"Processed and saved: {dest_path}")
+                    except Exception as e:
+                        print(f"Error saving {dest_path}: {e}")
+                else:
+                    print(f"Skipping {source_path} due to processing error.")
+
+# Example usage:
+source_dataset_path = "/Users/anyhow/projects/data_science/Medical-Report-Generation/remote-dataset/chest-xray-pneumonia"
+processed_dataset_path = "/Users/anyhow/projects/data_science/Medical-Report-Generation/processed_dataset"
+
+move_and_preprocess_images(source_dataset_path, processed_dataset_path)
+
+print("Finished processing and moving images.")
