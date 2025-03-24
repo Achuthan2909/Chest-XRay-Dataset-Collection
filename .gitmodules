@@ -1,4 +1,0 @@
-[submodule "MedViT"]
-    path = MedViT
-    url = git@github.com:Achuthan2909/MedViT.git
-
