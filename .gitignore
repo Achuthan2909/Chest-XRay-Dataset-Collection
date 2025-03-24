@@ -1,10 +1,12 @@
-venv/
+.venv/
 processed_dataset
 using_dataset/
+Dataset/
 .DS_Store
 
 MedViT/MedViT_base_im1k/
 MedViT/output_medvit/
 MedViT/MedViT_base_im1k.pth
+MedViT/MedViT_large_im1k.pth
 MedViT/CustomDataset/__pycache__/
 MedViT/__pycache__/
